@@ -65,56 +65,54 @@
     </div>
 
     <script>
-        // استرجاع المقالات المخزنة عند تحميل الصفحة
+        // تحميل المقالات من الخادم عند تحميل الصفحة
         window.onload = function() {
             loadArticles();
         };
 
-        function loadArticles() {
+        async function loadArticles() {
             const articlesSection = document.getElementById('articlesSection');
-            const savedArticles = JSON.parse(localStorage.getItem('articles')) || [];
+            
+            // طلب GET لجلب المقالات
+            const response = await fetch('http://localhost:3000/articles');
+            const articles = await response.json();
 
-            // عرض المقالات المخزنة
-            savedArticles.forEach(article => {
+            // عرض المقالات
+            articles.forEach(article => {
                 const newArticle = document.createElement('div');
                 newArticle.classList.add('article');
-                newArticle.textContent = article;
+                newArticle.textContent = article.content;
                 articlesSection.appendChild(newArticle);
             });
         }
 
-        function submitArticle() {
+        async function submitArticle() {
             const articleInput = document.getElementById('articleInput');
             const articlesSection = document.getElementById('articlesSection');
 
             if (articleInput.value.trim() !== '') {
-                // إنشاء عنصر مقال جديد
-                const newArticle = document.createElement('div');
-                newArticle.classList.add('article');
-                newArticle.textContent = articleInput.value;
+                // إرسال المقال إلى الخادم
+                const response = await fetch('http://localhost:3000/articles', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ content: articleInput.value })
+                });
 
-                // إضافة المقال إلى قسم المقالات
-                articlesSection.appendChild(newArticle);
+                const newArticle = await response.json();
 
-                // تخزين المقال في LocalStorage
-                saveArticle(articleInput.value);
+                // عرض المقال الجديد
+                const articleDiv = document.createElement('div');
+                articleDiv.classList.add('article');
+                articleDiv.textContent = newArticle.content;
+                articlesSection.appendChild(articleDiv);
 
                 // تفريغ حقل الإدخال
                 articleInput.value = '';
             } else {
                 alert('الرجاء كتابة مقال قبل الإرسال');
             }
-        }
-
-        function saveArticle(article) {
-            // استرجاع المقالات المخزنة
-            const savedArticles = JSON.parse(localStorage.getItem('articles')) || [];
-
-            // إضافة المقال الجديد إلى القائمة
-            savedArticles.push(article);
-
-            // تخزين القائمة المحدثة في LocalStorage
-            localStorage.setItem('articles', JSON.stringify(savedArticles));
         }
     </script>
 </body>
